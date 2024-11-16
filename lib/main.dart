@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import SystemChrome
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:vault_mobile/controllers/notification_controller.dart';
 
 import 'controllers/theme_controller.dart';
 import 'pages/home/dashboard_page.dart';
@@ -8,10 +12,22 @@ import 'pages/home/home_page.dart';
 import 'pages/home/qr_scanner_page.dart';
 import 'pages/home/settings_page.dart';
 import 'pages/login/login.dart';
-import 'services/theme_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   await GetStorage.init(); // Initialize GetStorage
+
+  // Restrict app orientation to portrait only
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp, // Portrait mode (default orientation)
+    DeviceOrientation
+        .portraitDown, // Optional: Landscape flipped orientation (could be disabled based on use case)
+  ]);
+  // Initialize the notification controller
+  final notificationController = Get.put(NotificationController());
+  await notificationController
+      .initializeNotifications(); // Initialize notifications
+
   runApp(VaultApp());
 }
 
@@ -38,23 +54,26 @@ class VaultApp extends StatelessWidget {
   }
 }
 
+Future<void> requestOverlayPermission() async {
+  bool granted = await FlutterOverlayWindow.requestPermission() ?? false;
+  if (!granted) {
+    // Handle permission denial
+  }
+}
 
-// class VaultApp extends StatelessWidget {
-//   final ThemeService _themeService = ThemeService();
+Future<void> requestPermissions() async {
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return ValueListenableBuilder(
-//       valueListenable: _themeService.themeNotifier, // Listen to theme changes
-//       builder: (context, ThemeMode themeMode, child) {
-//         return MaterialApp(
-//           title: 'VAULT',
-//           theme: ThemeService.lightTheme,
-//           darkTheme: ThemeService.darkTheme,
-//           themeMode: themeMode,
-//           home: LoginView(),
-//         );
-//       },
-//     );
-//   }
-// }
+  final bool isGranted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions() ??
+      false;
+
+  if (isGranted) {
+    print("Notification permissions granted.");
+  } else {
+    print("Notification permissions denied.");
+  }
+}

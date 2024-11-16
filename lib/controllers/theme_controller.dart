@@ -8,7 +8,7 @@ class ThemeController extends GetxController {
   // Light and dark theme configurations
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: false,
-    primarySwatch: Colors.blueGrey,
+    primaryColor: Color(0xFF0c6496), // Set the primary color for light theme
     brightness: Brightness.light,
     scaffoldBackgroundColor: Colors.white,
   );
