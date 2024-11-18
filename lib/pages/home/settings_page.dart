@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../controllers/theme_controller.dart';
 import '../../controllers/notification_controller.dart' as notify;
-import '../../widgets/confirm_dialog.dart'; // Import NotificationController
+import '../../widgets/confirm_dialog.dart';
 
 class SettingsPage extends StatelessWidget {
   final ThemeController themeController = Get.find<ThemeController>();
   final notify.NotificationController notificationController =
       Get.put(notify.NotificationController());
+
+  SettingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,7 @@ class SettingsPage extends StatelessWidget {
                 title: Text('Dark Mode'),
                 value: themeController.isDarkMode.value,
                 onChanged: (value) => themeController.toggleTheme(),
-                secondary: Icon(Icons.brightness_6), // Icon for Dark Mode
+                secondary: Icon(Icons.brightness_6),
               );
             }),
           ),
@@ -37,13 +42,34 @@ class SettingsPage extends StatelessWidget {
               return SwitchListTile(
                 title: Text('Notifications'),
                 value: notificationController.isNotificationsEnabled.value,
-                onChanged: (value) {
-                  notificationController
-                      .toggleNotifications(value); // Toggle notifications
+                onChanged: (value) async {
+                  await notificationController.toggleNotifications(value);
+
+                  if (value) {
+                    notificationController.showLocalNotification(
+                      title: 'Notifications Enabled',
+                      body: 'You will now receive notifications.',
+                    );
+                  }
                 },
-                secondary: Icon(Icons.notifications), // Icon for Notifications
+                secondary: Icon(Icons.notifications),
               );
             }),
+          ),
+          Divider(),
+
+          // Test Notification Button
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                notificationController.showLocalNotification(
+                  title: 'Test Notification',
+                  body: 'This is a test notification.',
+                );
+              },
+              child: Text('Test Notification'),
+            ),
           ),
           Divider(),
 
@@ -58,11 +84,10 @@ class SettingsPage extends StatelessWidget {
                   message: 'Are you sure you want to log out?',
                 );
                 if (confirm) {
-                  // Handle log out action
                   print("Logged out");
                 }
               },
-              leading: Icon(Icons.exit_to_app), // Icon for Log Out
+              leading: Icon(Icons.exit_to_app),
             ),
           ),
           Divider(),
@@ -78,11 +103,11 @@ class SettingsPage extends StatelessWidget {
                   message: 'Are you sure you want to exit?',
                 );
                 if (confirm) {
-                  // Handle exit action, such as quitting the app
                   print("Exiting the app");
+                  SystemNavigator.pop(); // Exits the app
                 }
               },
-              leading: Icon(Icons.power_settings_new), // Icon for Exit
+              leading: Icon(Icons.power_settings_new),
             ),
           ),
           Divider(),

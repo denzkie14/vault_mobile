@@ -1,61 +1,68 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class NotificationController extends GetxController {
-  var isNotificationsEnabled =
-      false.obs; // RxBool to observe notification toggle
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  // Initialize the notification plugin
-  Future<void> initializeNotifications() async {
+  var isNotificationsEnabled = false.obs;
+
+  NotificationController() {
+    _initializeNotifications();
+  }
+
+  void _initializeNotifications() async {
+    // Android-specific initialization
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings(
-            'notification_icon'); // Use your icon name here
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
+    // Define initialization settings for the plugin
     final InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-      // iOS: IOSInitializationSettings(), // Uncomment if you want iOS support
-    );
+        InitializationSettings(android: initializationSettingsAndroid);
 
+    // Initialize the plugin
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  // Toggle notification state and show notification if enabled
-  void toggleNotifications(bool isEnabled) {
-    isNotificationsEnabled.value = isEnabled;
-    if (isEnabled) {
-      showNotification(); // Show the notification when the switch is turned on
+  Future<void> requestNotificationPermissions() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
     }
   }
 
-  // Show a notification
-  Future<void> showNotification() async {
-    debugPrint('Show notification!');
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'your_channel_id', // Use your own channel ID
-      'your_channel_name', // Channel name
-      channelDescription: 'Description of your notification channel',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon:
-          'notification_icon', // Ensure this icon exists in your drawable folder
-    );
+  Future<void> toggleNotifications(bool value) async {
+    if (value) {
+      await requestNotificationPermissions();
+    }
+    isNotificationsEnabled.value = value;
+  }
 
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-      // iOS: IOSNotificationDetails(), // Uncomment if supporting iOS
-    );
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+  }) async {
+    try {
+      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+          AndroidNotificationDetails(
+        'your_channel_id', // Replace with your channel ID
+        'your_channel_name', // Replace with your channel name
+        channelDescription: 'This channel is used for notifications.',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
 
-    await flutterLocalNotificationsPlugin.show(
-      0, // Notification ID
-      'Notifications Enabled', // Title
-      'You will now receive notifications.', // Body
-      notificationDetails,
-      payload: 'Notification Payload', // Optional: Custom data
-    );
+      const NotificationDetails platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
+
+      await flutterLocalNotificationsPlugin.show(
+        0, // Notification ID
+        title,
+        body,
+        platformChannelSpecifics,
+      );
+    } catch (e) {
+      print('Error showing notification: $e');
+    }
   }
 }

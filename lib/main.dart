@@ -23,10 +23,6 @@ void main() async {
     DeviceOrientation
         .portraitDown, // Optional: Landscape flipped orientation (could be disabled based on use case)
   ]);
-  // Initialize the notification controller
-  final notificationController = Get.put(NotificationController());
-  await notificationController
-      .initializeNotifications(); // Initialize notifications
 
   runApp(VaultApp());
 }

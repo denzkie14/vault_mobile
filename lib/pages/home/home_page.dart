@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     DashboardPage(),
-    QRScannerPage(),
+    //   QRScannerPage(),
     SettingsPage(),
   ];
 

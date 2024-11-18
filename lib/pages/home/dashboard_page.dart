@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:vault_mobile/models/document_model.dart';
+
+import '../../widgets/document_tile.dart';
 
 class DashboardPage extends StatelessWidget {
+  final List<DocumentModel> documents =
+      List.generate(20, (index) => generateRandomDocument(index + 1));
+
   // Sample data for the cards and recent transactions
   final Map<String, Map<String, dynamic>> cardData = {
     'Incoming': {
@@ -62,88 +68,100 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: Text('Dashboard'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.only(right: 8, left: 8, top: 8, bottom: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row for the cards
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: cardData.entries.map((entry) {
-                return Card(
-                  elevation: 5,
-                  color: entry.value['color'],
-                  child: Container(
-                    width: 150,
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(
-                          entry.value['icon'],
-                          size: 40,
-                          color: Colors.white,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          entry.key,
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '${entry.value['value']}',
-                          style: TextStyle(fontSize: 24, color: Colors.white),
-                        ),
-                      ],
+            // Responsive cards using GridView
+            Expanded(
+              flex: 2,
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: (MediaQuery.of(context).size.width ~/ 200),
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.5,
+                ),
+                itemCount: cardData.length,
+                itemBuilder: (context, index) {
+                  final entry = cardData.entries.elementAt(index);
+                  return Card(
+                    elevation: 5,
+                    color: entry.value['color'],
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Stack(
+                        //  mainAxisAlignment: MainAxisAlignment.center,
+                        // crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Align(
+                            alignment: Alignment.topLeft,
+                            child: Icon(
+                              entry.value['icon'],
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ),
+                          // SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${entry.value['value']}',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          // SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Text(
+                              entry.key,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Recent Transactions Table
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Recent Transactions',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: 30),
-            // Recent Transactions Table
-            Text(
-              'Recent Transactions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Transaction #')),
-                  DataColumn(label: Text('Title')),
-                  DataColumn(label: Text('Origin')),
-                  DataColumn(label: Text('Location')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Action')),
+                  SizedBox(height: 10),
+                  Expanded(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: documents
+                          .map((document) => DocumentTile(document: document))
+                          .toList(),
+                    ),
+                  ),
                 ],
-                rows: transactionData.map((transaction) {
-                  return DataRow(cells: [
-                    DataCell(Text(transaction['transactionNo']!)),
-                    DataCell(Text(transaction['title']!)),
-                    DataCell(Text(transaction['origin']!)),
-                    DataCell(Text(transaction['location']!)),
-                    DataCell(Text(transaction['status']!)),
-                    DataCell(TextButton(
-                      onPressed: () {
-                        // Handle the action (e.g., show details)
-                        print(
-                            'Viewing details of ${transaction['transactionNo']}');
-                      },
-                      child: Text(transaction['action']!),
-                    )),
-                  ]);
-                }).toList(),
               ),
             ),
           ],
@@ -153,8 +171,9 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: DashboardPage(),
-  ));
-}
+
+// void main() {
+//   runApp(MaterialApp(
+//     home: DashboardPage(),
+//   ));
+// }
