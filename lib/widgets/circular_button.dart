@@ -5,11 +5,11 @@ import '../constants/color_values.dart';
 class CircularButton extends StatelessWidget {
   const CircularButton({super.key, required this.icon, required this.fn});
   final IconData icon;
-  final Function fn;
+  final Function()? fn;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => fn,
+      onTap: fn,
       child: Container(
         width: 45, // Width of the button
         height: 45, // Height of the button
@@ -26,7 +26,7 @@ class CircularButton extends StatelessWidget {
         ),
         child: Icon(
           icon, // Icon inside the button
-          color: colorDefault, // Icon color
+          color: Colors.blue, // Icon color
         ),
       ),
     );

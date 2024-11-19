@@ -65,6 +65,7 @@ class DashboardPage extends StatelessWidget {
     },
   ];
 
+  List<bool> isSelected = [false, false, false];
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -143,12 +144,16 @@ class DashboardPage extends StatelessWidget {
               flex: 3,
               child: Column(
                 children: [
-                  const Align(
+                  Align(
                     alignment: Alignment.topLeft,
-                    child: Text(
-                      'Recent Transactions',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Recent Transactions',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 10),

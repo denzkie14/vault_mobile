@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:vault_mobile/models/document_model.dart';
+
+import '../constants/values.dart';
 
 class DocumentController extends GetxController {
   // Function to call the API with the scanned value
@@ -12,7 +12,7 @@ class DocumentController extends GetxController {
     try {
       // API Call
       final response = await http.get(
-        Uri.parse('http://188.180.100.35/VAULT/api/documents/$scannedValue'),
+        Uri.parse('$apiUrl/documents/$scannedValue'),
       );
 
       if (response.statusCode == 200) {
