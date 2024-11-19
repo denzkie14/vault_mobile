@@ -7,7 +7,7 @@ class DocumentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(document.code),
+      title: Text(document.documentNumber),
       subtitle: Text(document.title),
       // trailing: FlutterLogo(),
     );

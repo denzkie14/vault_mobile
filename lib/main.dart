@@ -5,9 +5,9 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:vault_mobile/controllers/notification_controller.dart';
-
 import 'controllers/theme_controller.dart';
 import 'pages/home/dashboard_page.dart';
+import 'pages/home/document_page.dart';
 import 'pages/home/home_page.dart';
 import 'pages/home/qr_scanner_page.dart';
 import 'pages/home/settings_page.dart';
@@ -34,15 +34,17 @@ class VaultApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       return GetMaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Home Page with Bottom Navigation',
         theme: themeController.isDarkMode.value
             ? ThemeController.darkTheme
             : ThemeController.lightTheme,
         initialRoute: '/',
         getPages: [
+          //   GetPage(name: '/', page: () => DocumentDetails()),
           GetPage(name: '/', page: () => HomePage()),
           GetPage(name: '/dashboard', page: () => DashboardPage()),
-          GetPage(name: '/scan', page: () => QRScannerPage()),
+          GetPage(name: '/scan', page: () => QRCodeScannerScreen()),
           GetPage(name: '/settings', page: () => SettingsPage()),
         ],
       );

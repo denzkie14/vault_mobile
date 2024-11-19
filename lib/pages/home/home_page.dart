@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 import 'dashboard_page.dart';
 import 'qr_scanner_page.dart';
 import 'settings_page.dart';
@@ -86,9 +87,10 @@ class _HomePageState extends State<HomePage> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            setState(() {
-              _selectedIndex = 1;
-            });
+            Get.to(QRCodeScannerScreen());
+            // setState(() {
+            //   _selectedIndex = 1;
+            // });
           },
           child: Icon(Icons.qr_code_scanner),
           tooltip: 'Scan',

@@ -4,8 +4,7 @@ import 'package:vault_mobile/models/document_model.dart';
 import '../../widgets/document_tile.dart';
 
 class DashboardPage extends StatelessWidget {
-  final List<DocumentModel> documents =
-      List.generate(20, (index) => generateRandomDocument(index + 1));
+  final List<DocumentModel> documents = [];
 
   // Sample data for the cards and recent transactions
   final Map<String, Map<String, dynamic>> cardData = {
