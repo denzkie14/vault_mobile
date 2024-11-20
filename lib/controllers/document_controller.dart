@@ -15,21 +15,26 @@ class DocumentController extends GetxController {
   // Function to call the API with the scanned value
   final GetStorage storage = GetStorage(); // Instance of GetStorage
 
+  var isLoading = false.obs;
+  var copyOnly = false.obs;
+  var selectedPurpose = ''.obs;
+
   User? user;
   String message = '';
   int statusCode = 200;
-  List<ActionModel> actions = <ActionModel>[].obs;
+  var actions = <ActionModel>[].obs;
   Future<DocumentModel?> fetchDataFromAPI(String scannedValue) async {
     User user = User.fromJson(storage.read('user'));
     // try {
     // API Call
+    isLoading(true);
     final response = await http.get(
       Uri.parse('$apiUrl/documents/$scannedValue'),
       headers: {'Authorization': 'Bearer  ${user!.token}'},
     );
 
     actions.clear();
-
+    isLoading(false);
     if (response.statusCode == 200) {
       statusCode = 200;
       message = 'Record found.';
@@ -39,6 +44,7 @@ class DocumentController extends GetxController {
           .map<ActionModel>((a) => ActionModel.fromJson(a))
           .toList();
       actions.addAll(dataActions);
+      actions.refresh();
       return doc; // Return the parsed document
     } else if (response.statusCode == 404) {
       statusCode = 404;

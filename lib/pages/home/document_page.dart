@@ -23,6 +23,9 @@ class DocumentDetails extends StatefulWidget {
 class _DocumentDetailsState extends State<DocumentDetails> {
   late DocumentModel _document;
   final DocumentController _controller = DocumentController();
+  final TextEditingController _purposeController = TextEditingController();
+  final TextEditingController _remarksController = TextEditingController();
+  bool _isCopyOnly = false;
 
   @override
   void initState() {
@@ -109,8 +112,76 @@ class _DocumentDetailsState extends State<DocumentDetails> {
   }
 
   Future<bool> _onWillPop() async {
-    Get.offAllNamed('/');
+    Get.offAllNamed('/home');
     return true;
+  }
+
+  void _showActionModal(int actionId, String actionLabel) {
+    _controller.copyOnly(false);
+    //  _controller.selectedPurpose.value = '';
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(actionLabel),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (actionId == 2) PurposeDropDown(),
+                const SizedBox(
+                  height: 8,
+                ),
+                CustomTextFormField(
+                  textController: _remarksController,
+                  hintText: 'Remarks (Optional)',
+                  maxLines: 3,
+                ),
+                if (actionId == 2)
+                  Row(
+                    children: [
+                      Obx(() {
+                        return Checkbox(
+                          value: _controller.copyOnly.value,
+                          onChanged: (bool? value) {
+                            _controller.copyOnly.value = value ?? false;
+                          },
+                        );
+                      }),
+                      const Text('Copy only'),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Handle confirm action
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Action confirmed with ID: $actionId'),
+                  ),
+                );
+
+                debugPrint('Is copy only = ${_controller.copyOnly.value}');
+                debugPrint(
+                    'Selected Purpose = ${_controller.selectedPurpose.value}');
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -137,37 +208,24 @@ class _DocumentDetailsState extends State<DocumentDetails> {
           ],
         ),
         floatingActionButton: Obx(() {
-          return SpeedDial(
-            icon: Icons.apps,
-            activeIcon: Icons.close,
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            children: _controller.actions.map<SpeedDialChild>((action) {
-              return SpeedDialChild(
-                child: action.action_id == 6
-                    ? Icon(Icons.check)
-                    : action.action_id == 2
-                        ? Icon(Icons.outbound)
-                        : action.action_id == 3
-                            ? Icon(Icons.download)
-                            : action.action_id == 4
-                                ? Icon(Icons.thumb_up)
-                                : action.action_id == 5
-                                    ? Icon(Icons.thumb_down)
-                                    : Icon(Icons.restore),
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                label: action.label,
-                labelStyle: TextStyle(fontSize: 18),
-                onTap: () {
-                  // Handle the action when tapped
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(action.label)),
-                  );
-                },
-              );
-            }).toList(),
-          );
+          return _controller.isLoading.value
+              ? const SizedBox()
+              : SpeedDial(
+                  icon: Icons.apps,
+                  activeIcon: Icons.close,
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  children: _controller.actions.map<SpeedDialChild>((action) {
+                    return SpeedDialChild(
+                      child: Icon(_getActionIcon(action.action_id)),
+                      foregroundColor: Colors.white,
+                      backgroundColor: _getActionColor(action.action_id),
+                      label: action.label.toUpperCase(),
+                      onTap: () =>
+                          _showActionModal(action.action_id, action.label),
+                    );
+                  }).toList(),
+                );
         }),
         body: Stack(
           children: [
@@ -282,6 +340,82 @@ class _DocumentDetailsState extends State<DocumentDetails> {
           ],
         ),
       ),
+    );
+  }
+
+  IconData _getActionIcon(int actionId) {
+    switch (actionId) {
+      case 6:
+        return Icons.check;
+      case 2:
+        return Icons.send;
+      case 3:
+        return Icons.download;
+      case 4:
+        return Icons.thumb_up;
+      case 5:
+        return Icons.thumb_down;
+      default:
+        return Icons.restore;
+    }
+  }
+
+  Color _getActionColor(int actionId) {
+    switch (actionId) {
+      case 6:
+        return colorSuccess;
+      case 2:
+        return colorWarning;
+      case 3:
+        return colorDefault;
+      case 4:
+        return Colors.green;
+      case 5:
+        return colorDanger;
+      default:
+        return Colors.grey;
+    }
+  }
+}
+
+// Declare the list
+final List<String> dropdownOptions = [
+  'FACILITATION/APPROPRIATE ACTION',
+  'YOUR INFORMATION',
+  'FOR APPROVAL',
+  'REVIEW & COMMENT',
+  'KINDLY SEE ME ABOUT THIS',
+  'RECOMMENDATION',
+  'COORDINATION WITH OFFICES CONCERNED',
+];
+
+// Add a DropdownButton in your widget
+class PurposeDropDown extends StatefulWidget {
+  @override
+  _PurposeDropDownState createState() => _PurposeDropDownState();
+}
+
+class _PurposeDropDownState extends State<PurposeDropDown> {
+  String? selectedOption; // Variable to store the selected value
+  final DocumentController _controller = DocumentController();
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton<String>(
+      value: selectedOption,
+      hint: const Text('Select an option'), // Default hint
+      isExpanded: true, // Adjust width to parent container
+      items: dropdownOptions.map((String option) {
+        return DropdownMenuItem<String>(
+          value: option,
+          child: Text(option),
+        );
+      }).toList(),
+      onChanged: (String? value) {
+        setState(() {
+          selectedOption = value;
+          _controller.selectedPurpose.value = value ?? '';
+        });
+      },
     );
   }
 }
