@@ -20,8 +20,6 @@ void main() async {
   // Restrict app orientation to portrait only
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp, // Portrait mode (default orientation)
-    DeviceOrientation
-        .portraitDown, // Optional: Landscape flipped orientation (could be disabled based on use case)
   ]);
 
   runApp(VaultApp());
@@ -29,20 +27,25 @@ void main() async {
 
 class VaultApp extends StatelessWidget {
   final ThemeController themeController = Get.put(ThemeController());
+  final GetStorage storage = GetStorage(); // Instance of GetStorage
 
   @override
   Widget build(BuildContext context) {
+    // Check if user data exists
+    final bool isLoggedIn = storage.read('user') != null;
+
     return Obx(() {
       return GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Home Page with Bottom Navigation',
+        title: 'Vault App',
         theme: themeController.isDarkMode.value
             ? ThemeController.darkTheme
             : ThemeController.lightTheme,
-        initialRoute: '/',
+        initialRoute:
+            isLoggedIn ? '/home' : '/login', // Navigate based on login status
         getPages: [
-          //   GetPage(name: '/', page: () => DocumentDetails()),
-          GetPage(name: '/', page: () => HomePage()),
+          GetPage(name: '/login', page: () => LoginView()),
+          GetPage(name: '/home', page: () => HomePage()),
           GetPage(name: '/dashboard', page: () => DashboardPage()),
           GetPage(name: '/scan', page: () => QRCodeScannerScreen()),
           GetPage(name: '/settings', page: () => SettingsPage()),

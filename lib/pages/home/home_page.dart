@@ -21,11 +21,12 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     DashboardPage(),
-    //   QRScannerPage(),
+    //  DashboardPage(),
     SettingsPage(),
   ];
 
   void _onItemTapped(int index) {
+    debugPrint('Selected index = $index');
     setState(() {
       _selectedIndex = index;
     });
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
     final currentTime = DateTime.now();
     final backPressTime = currentBackPressTime;
     final isBackPressValid = backPressTime == null ||
-        currentTime.difference(backPressTime) > Duration(seconds: 2);
+        currentTime.difference(backPressTime) > const Duration(seconds: 2);
 
     if (isBackPressValid) {
       currentBackPressTime = currentTime;
@@ -60,18 +61,18 @@ class _HomePageState extends State<HomePage> {
           children: _pages,
         ),
         bottomNavigationBar: BottomAppBar(
-          shape: CircularNotchedRectangle(),
+          shape: const CircularNotchedRectangle(),
           notchMargin: 8.0,
           child: BottomNavigationBar(
-            items: <BottomNavigationBarItem>[
+            items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.dashboard),
                 label: 'Dashboard',
               ),
-              BottomNavigationBarItem(
-                icon: SizedBox.shrink(),
-                label: '', // Empty label for the middle button
-              ),
+              // BottomNavigationBarItem(
+              //   icon: SizedBox.shrink(),
+              //   label: '', // Empty label for the middle button
+              // ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.settings),
                 label: 'Settings',
@@ -79,15 +80,15 @@ class _HomePageState extends State<HomePage> {
             ],
             currentIndex: _selectedIndex,
             onTap: (index) {
-              if (index != 1) {
-                _onItemTapped(index);
-              }
+              //  if (index != 1) {
+              _onItemTapped(index);
+              //  }
             },
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Get.to(QRCodeScannerScreen());
+            Get.to(const QRCodeScannerScreen());
             // setState(() {
             //   _selectedIndex = 1;
             // });

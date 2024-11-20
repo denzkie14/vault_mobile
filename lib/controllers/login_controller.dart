@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:vault_mobile/constants/values.dart';
 import 'dart:convert';
 
 import '../models/user_model.dart';
+import 'package:get_storage/get_storage.dart';
 
 class LoginController extends GetxController {
   var isLoading = false.obs;
@@ -11,7 +13,8 @@ class LoginController extends GetxController {
   var errorMessage = ''.obs;
 
   final String loginUrl =
-      'http://192.168.2.244/api/login'; // Replace with your actual API endpoint
+      '$apiUrl/login'; // Replace with your actual API endpoint
+  final GetStorage storage = GetStorage(); // Instance of GetStorage
 
   Future<void> login(String username, String password) async {
     isLoading(true);
@@ -30,22 +33,37 @@ class LoginController extends GetxController {
 
       if (response.statusCode == 200) {
         var responseData = json.decode(response.body);
-        debugPrint(responseData);
+        debugPrint(responseData.toString());
 
-        if (responseData['success'] == 'success') {
+        if (responseData['success'] == true) {
           isLoggedIn(true);
           errorMessage('');
 
           // Map the response to User model
-          User user = User.fromJson(
-              responseData['user']); // Assuming the user data is inside 'data'
-
-          // Save the user data or update state
-          // Example: save user to a state management or local storage
-          // userController.saveUser(user); // Example with state management
+          User user = User.fromJson(responseData['user']);
+          errorMessage(
+              'Welcome back ${user.firstName.toUpperCase()}! Press OK to continue.');
+          // Save user data to GetStorage
+          storage.write('user', user.toJson());
+          // saveUserData(user);
         } else {
-          errorMessage('Login failed: ${responseData['message']}');
+          errorMessage('${responseData['message']}');
         }
+      } else if (response.statusCode == 401) {
+        if (Get.isDialogOpen == true) {
+          Get.back(); // Close the dialog
+        }
+        Get.snackbar(
+          'Unauthorized',
+          'You are not authorized to access this file.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } else if (response.statusCode == 404) {
+        Get.snackbar(
+          'No Record',
+          'Document not found',
+          snackPosition: SnackPosition.BOTTOM,
+        );
       } else {
         errorMessage('Failed to connect to the server.');
       }
@@ -54,5 +72,19 @@ class LoginController extends GetxController {
     } finally {
       isLoading(false);
     }
+  }
+
+  // Function to save user data to GetStorage
+  // void saveUserData(User user) {
+  //   storage.write('user', user.toJson());
+  // }
+
+  // Function to retrieve user data from GetStorage
+  User? getUserData() {
+    var userData = storage.read('user');
+    if (userData != null) {
+      return User.fromJson(userData);
+    }
+    return null;
   }
 }

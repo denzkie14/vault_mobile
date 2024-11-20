@@ -101,7 +101,7 @@ class DocumentModel {
   final String documentType;
   final DateTime? dateCreated;
   final String createdBy;
-  final DateTime? lastUpdated;
+  final DateTime lastUpdated;
   final bool isDeleted;
 
   DocumentModel({
@@ -121,7 +121,7 @@ class DocumentModel {
     required this.documentType,
     this.dateCreated,
     required this.createdBy,
-    this.lastUpdated,
+    required this.lastUpdated,
     required this.isDeleted,
   });
 
@@ -142,13 +142,9 @@ class DocumentModel {
       securityDescription: json['security_description'],
       version: json['version'],
       documentType: json['document_type'],
-      dateCreated: json['date_created'] != null
-          ? DateTime.parse(json['date_created'])
-          : null,
+      dateCreated: DateTime.parse(json['date_created']),
       createdBy: json['created_by'],
-      lastUpdated: json['last_updated'] != null
-          ? DateTime.parse(json['last_updated'])
-          : null,
+      lastUpdated: DateTime.parse(json['last_updated']),
       isDeleted: json['is_deleted'],
     );
   }

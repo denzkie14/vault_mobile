@@ -95,29 +95,54 @@ class LoginView extends StatelessWidget {
 
                         // Close the loading dialog
                         Navigator.of(context).pop();
+                        if (loginController.isLoggedIn.value) {
+                          showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) {
+                              return ResultDialog(
+                                title: 'Login Success.',
+                                message: loginController.errorMessage.value,
+                                isSuccess: loginController.isLoggedIn.value,
+                                onSuccess: () {
+                                  // Navigate to the next page after successful login
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    '/home',
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        } else {
+                          Get.snackbar('Login Failed',
+                              loginController.errorMessage.value,
+                              snackPosition: SnackPosition.BOTTOM);
+                        }
 
                         // Show result dialog
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return ResultDialog(
-                              title: loginController.isLoggedIn.value
-                                  ? 'Login Successful'
-                                  : 'Login Failed',
-                              message: loginController.isLoggedIn.value
-                                  ? 'Welcome back!'
-                                  : loginController.errorMessage.value,
-                              isSuccess: loginController.isLoggedIn.value,
-                              onSuccess: () {
-                                // Navigate to the next page after successful login
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/home',
-                                );
-                              },
-                            );
-                          },
-                        );
+                        // showDialog(
+                        //   context: context,
+                        //   builder: (context) {
+
+                        //     return ResultDialog(
+                        //       title: loginController.isLoggedIn.value
+                        //           ? 'Login Successful'
+                        //           : 'Login Failed',
+                        //       message: loginController.isLoggedIn.value
+                        //           ? 'Welcome back!'
+                        //           : loginController.errorMessage.value,
+                        //       isSuccess: loginController.isLoggedIn.value,
+                        //       onSuccess: () {
+                        //         // Navigate to the next page after successful login
+                        //         Navigator.pushReplacementNamed(
+                        //           context,
+                        //           '/home',
+                        //         );
+                        //       },
+                        //     );
+                        //   },
+                        // );
                       }
                     },
                     style: ElevatedButton.styleFrom(
