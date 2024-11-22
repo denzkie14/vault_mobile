@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:vault_mobile/models/action_model.dart';
 import 'package:vault_mobile/models/document_model.dart';
+import 'package:vault_mobile/models/purpose_model.dart';
 
 import '../constants/values.dart';
 import '../models/document_log_model.dart';
@@ -17,8 +18,8 @@ class DocumentController extends GetxController {
 
   var isLoading = false.obs;
   var copyOnly = false.obs;
-  var selectedPurpose = ''.obs;
-
+  // var selectedPurpose = ''.obs;
+  Rxn<Purpose?> selectedPurpose = Rxn<Purpose?>();
   User? user;
   String message = '';
   int statusCode = 200;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/login_controller.dart';
+import '../../controllers/theme_controller.dart';
 import '../../widgets/alert_dialog.dart';
 import '../../widgets/loading_dialog.dart';
 
@@ -11,13 +12,13 @@ class LoginView extends StatelessWidget {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
+  final ThemeController themeController = Get.find<ThemeController>();
   @override
   Widget build(BuildContext context) {
     final isLargeScreen = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      //   backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -26,6 +27,17 @@ class LoginView extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Align(
+                    alignment: Alignment.topRight,
+                    child: Obx(() {
+                      return IconButton(
+                          onPressed: () {
+                            themeController.toggleTheme();
+                          },
+                          icon: themeController.isDarkMode.value
+                              ? const Icon(Icons.light_mode)
+                              : const Icon(Icons.dark_mode));
+                    })),
                 Image.asset(
                   'assets/images/vault_logo.png',
                   height: isLargeScreen ? 150 : 100,
@@ -36,6 +48,16 @@ class LoginView extends StatelessWidget {
                   'VAULT',
                   style: TextStyle(
                     fontSize: isLargeScreen ? 32 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: customColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Virtual Archiving and Updated Logistics Tracking',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: isLargeScreen ? 28 : 18,
                     fontWeight: FontWeight.bold,
                     color: customColor,
                   ),
@@ -68,7 +90,7 @@ class LoginView extends StatelessWidget {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     } else if (value.length < 4) {
-                      return 'Password must be at least 6 characters';
+                      return 'Password must be at least 4 characters';
                     }
                     return null;
                   },

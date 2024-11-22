@@ -7,9 +7,12 @@ import 'package:vault_mobile/models/document_model.dart';
 import 'package:vault_mobile/pages/home/pdf_view.dart';
 import 'package:vault_mobile/widgets/custom_infputfield.dart';
 
+import '../../constants/values.dart';
 import '../../controllers/document_controller.dart';
 import '../../models/document_log_model.dart';
+import '../../models/purpose_model.dart';
 import '../../widgets/circular_button.dart';
+import '../../widgets/purpose_dropdown.dart';
 
 class DocumentDetails extends StatefulWidget {
   final DocumentModel document;
@@ -22,7 +25,7 @@ class DocumentDetails extends StatefulWidget {
 
 class _DocumentDetailsState extends State<DocumentDetails> {
   late DocumentModel _document;
-  final DocumentController _controller = DocumentController();
+  final DocumentController _controller = Get.put(DocumentController());
   final TextEditingController _purposeController = TextEditingController();
   final TextEditingController _remarksController = TextEditingController();
   bool _isCopyOnly = false;
@@ -97,10 +100,54 @@ class _DocumentDetailsState extends State<DocumentDetails> {
                   String formattedDate = DateFormat('MMM dd, yyyy hh:mm:ss a')
                       .format(log.dateActed);
 
-                  return ListTile(
+                  return ExpansionTile(
                     leading: const Icon(Icons.history),
-                    title: Text(log.actionLabel),
-                    subtitle: Text('By: ${log.actedBy} @ ${formattedDate}'),
+                    title: Row(
+                      children: [
+                        Text(log.actionLabel),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        log.actionId == 3
+                            ? const Icon(
+                                Icons.file_copy,
+                                size: 12,
+                              )
+                            : const SizedBox(),
+                      ],
+                    ),
+                    subtitle:
+                        Text('By: ${log.actedBy} of ${log.actorOfficeCode}'),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Details:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('Action: ${log.actionLabel}'),
+                            const SizedBox(height: 4),
+                            Text('Acted By: ${log.actedBy}'),
+                            const SizedBox(height: 4),
+                            Text('Office: ${log.actorOffice}'),
+                            const SizedBox(height: 4),
+                            Text('Acted On: $formattedDate'),
+                            const SizedBox(height: 4),
+                            log.actionId == 3
+                                ? Text('Delivered By: ${log.deliveredBy}')
+                                : const SizedBox(),
+                          ],
+                        ),
+                      ),
+                    ],
                   );
                 },
               );
@@ -142,12 +189,17 @@ class _DocumentDetailsState extends State<DocumentDetails> {
                   Row(
                     children: [
                       Obx(() {
-                        return Checkbox(
-                          value: _controller.copyOnly.value,
-                          onChanged: (bool? value) {
-                            _controller.copyOnly.value = value ?? false;
-                          },
-                        );
+                        return _controller.selectedPurpose.value?.id == 3
+                            ? Checkbox(
+                                value: false,
+                                onChanged: (bool? value) {},
+                              )
+                            : Checkbox(
+                                value: _controller.copyOnly.value,
+                                onChanged: (bool? value) {
+                                  _controller.copyOnly.value = value ?? false;
+                                },
+                              );
                       }),
                       const Text('Copy only'),
                     ],
@@ -174,7 +226,7 @@ class _DocumentDetailsState extends State<DocumentDetails> {
 
                 debugPrint('Is copy only = ${_controller.copyOnly.value}');
                 debugPrint(
-                    'Selected Purpose = ${_controller.selectedPurpose.value}');
+                    'Selected Purpose = ${_controller.selectedPurpose?.value}');
               },
               child: const Text('Confirm'),
             ),
@@ -375,47 +427,5 @@ class _DocumentDetailsState extends State<DocumentDetails> {
       default:
         return Colors.grey;
     }
-  }
-}
-
-// Declare the list
-final List<String> dropdownOptions = [
-  'FACILITATION/APPROPRIATE ACTION',
-  'YOUR INFORMATION',
-  'FOR APPROVAL',
-  'REVIEW & COMMENT',
-  'KINDLY SEE ME ABOUT THIS',
-  'RECOMMENDATION',
-  'COORDINATION WITH OFFICES CONCERNED',
-];
-
-// Add a DropdownButton in your widget
-class PurposeDropDown extends StatefulWidget {
-  @override
-  _PurposeDropDownState createState() => _PurposeDropDownState();
-}
-
-class _PurposeDropDownState extends State<PurposeDropDown> {
-  String? selectedOption; // Variable to store the selected value
-  final DocumentController _controller = DocumentController();
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButton<String>(
-      value: selectedOption,
-      hint: const Text('Select an option'), // Default hint
-      isExpanded: true, // Adjust width to parent container
-      items: dropdownOptions.map((String option) {
-        return DropdownMenuItem<String>(
-          value: option,
-          child: Text(option),
-        );
-      }).toList(),
-      onChanged: (String? value) {
-        setState(() {
-          selectedOption = value;
-          _controller.selectedPurpose.value = value ?? '';
-        });
-      },
-    );
   }
 }
