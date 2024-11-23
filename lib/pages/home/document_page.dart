@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:vault_mobile/constants/color_values.dart';
 import 'package:vault_mobile/models/document_model.dart';
+import 'package:vault_mobile/pages/home/otp_qr_scanner.dart';
 import 'package:vault_mobile/pages/home/pdf_view.dart';
 import 'package:vault_mobile/widgets/custom_infputfield.dart';
 
@@ -12,6 +13,7 @@ import '../../controllers/document_controller.dart';
 import '../../models/document_log_model.dart';
 import '../../models/purpose_model.dart';
 import '../../widgets/circular_button.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../widgets/purpose_dropdown.dart';
 
 class DocumentDetails extends StatefulWidget {
@@ -26,7 +28,6 @@ class DocumentDetails extends StatefulWidget {
 class _DocumentDetailsState extends State<DocumentDetails> {
   late DocumentModel _document;
   final DocumentController _controller = Get.put(DocumentController());
-  final TextEditingController _purposeController = TextEditingController();
   final TextEditingController _remarksController = TextEditingController();
   bool _isCopyOnly = false;
 
@@ -163,9 +164,11 @@ class _DocumentDetailsState extends State<DocumentDetails> {
     return true;
   }
 
-  void _showActionModal(int actionId, String actionLabel) {
+  void _showActionReleaseModal(int actionId, String actionLabel) {
     _controller.copyOnly(false);
-    //  _controller.selectedPurpose.value = '';
+    _controller.selectedPurpose.value = null;
+    _controller.scannedOTP.value = '';
+    _remarksController.clear();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -173,38 +176,39 @@ class _DocumentDetailsState extends State<DocumentDetails> {
         return AlertDialog(
           title: Text(actionLabel),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (actionId == 2) PurposeDropDown(),
-                const SizedBox(
-                  height: 8,
-                ),
-                CustomTextFormField(
-                  textController: _remarksController,
-                  hintText: 'Remarks (Optional)',
-                  maxLines: 3,
-                ),
-                if (actionId == 2)
-                  Row(
-                    children: [
-                      Obx(() {
-                        return _controller.selectedPurpose.value?.id == 3
-                            ? Checkbox(
-                                value: false,
-                                onChanged: (bool? value) {},
-                              )
-                            : Checkbox(
-                                value: _controller.copyOnly.value,
-                                onChanged: (bool? value) {
-                                  _controller.copyOnly.value = value ?? false;
-                                },
-                              );
-                      }),
-                      const Text('Copy only'),
-                    ],
+            child: Form(
+              key: _controller.formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (actionId == 2) PurposeDropDown(),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    textController: _remarksController,
+                    hintText: 'Remarks (Optional)',
+                    maxLines: 3,
                   ),
-              ],
+                  if (actionId == 2)
+                    Row(
+                      children: [
+                        Obx(() {
+                          return _controller.selectedPurpose.value?.id == 3
+                              ? Checkbox(
+                                  value: false,
+                                  onChanged: (bool? value) {},
+                                )
+                              : Checkbox(
+                                  value: _controller.copyOnly.value,
+                                  onChanged: (bool? value) {
+                                    _controller.copyOnly.value = value ?? false;
+                                  },
+                                );
+                        }),
+                        const Text('Copy only'),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -215,18 +219,192 @@ class _DocumentDetailsState extends State<DocumentDetails> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
-                // Handle confirm action
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Action confirmed with ID: $actionId'),
-                  ),
-                );
+              onPressed: () async {
+                if (_controller.formKey.currentState!.validate()) {
+                  // Close the modal dialog
+                  Navigator.of(context).pop();
 
-                debugPrint('Is copy only = ${_controller.copyOnly.value}');
-                debugPrint(
-                    'Selected Purpose = ${_controller.selectedPurpose?.value}');
+                  // Show loading dialog
+                  Get.dialog(
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    barrierDismissible: false,
+                  );
+
+                  var result = false;
+                  try {
+                    // Perform the release document action
+                    result = await _controller.releaseDocument(
+                      widget.document.documentNumber,
+                      actionId,
+                      _remarksController.text,
+                    );
+                  } finally {
+                    // Dismiss the loading dialog
+                    if (Get.isDialogOpen ?? false) {
+                      Get.back();
+                    }
+                  }
+                  Get.snackbar(
+                    result ? 'Success' : 'Error',
+                    _controller.updateMessage,
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+
+                  if (result) {
+                    _refreshDocumentDetails();
+                  }
+                }
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showActionReceiveModal(int actionId, String actionLabel) async {
+    _controller.copyOnly(false);
+    _controller.selectedPurpose.value = null;
+    _controller.scannedOTP.value = '';
+    _remarksController.clear();
+    String deliveryOTP = await Get.to(const OTP_QRCodeScannerScreen()) ?? '';
+
+    if (deliveryOTP.isNotEmpty) {
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(),
+        ),
+        barrierDismissible: false,
+      );
+
+      var result = false;
+      try {
+        // Perform the release document action
+        result = await _controller.receiveDocument(
+            widget.document.documentNumber,
+            actionId,
+            _remarksController.text,
+            widget.document.purposeId as int,
+            deliveryOTP);
+      } finally {
+        // Dismiss the loading dialog
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+      }
+      Get.snackbar(
+        result ? 'Success' : 'Error',
+        _controller.updateMessage,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      if (result) {
+        _refreshDocumentDetails();
+      }
+    }
+    // Get.snackbar(
+    //   'Scan Result',
+    //   otp,
+    //   snackPosition: SnackPosition.BOTTOM,
+    // );
+  }
+
+  void _showActionOtherActionModal(int actionId, String actionLabel) {
+    _controller.copyOnly(false);
+    _controller.selectedPurpose.value = null;
+    _controller.scannedOTP.value = '';
+    _remarksController.clear();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(actionLabel),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _controller.formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (actionId == 2) PurposeDropDown(),
+                  const SizedBox(height: 8),
+                  CustomTextFormField(
+                    textController: _remarksController,
+                    hintText: 'Remarks (Optional)',
+                    maxLines: 3,
+                  ),
+                  if (actionId == 2)
+                    Row(
+                      children: [
+                        Obx(() {
+                          return _controller.selectedPurpose.value?.id == 3
+                              ? Checkbox(
+                                  value: false,
+                                  onChanged: (bool? value) {},
+                                )
+                              : Checkbox(
+                                  value: _controller.copyOnly.value,
+                                  onChanged: (bool? value) {
+                                    _controller.copyOnly.value = value ?? false;
+                                  },
+                                );
+                        }),
+                        const Text('Copy only'),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_controller.formKey.currentState!.validate()) {
+                  // Close the modal dialog
+                  Navigator.of(context).pop();
+
+                  // Show loading dialog
+                  Get.dialog(
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    barrierDismissible: false,
+                  );
+
+                  var result = false;
+                  try {
+                    // Perform the release document action
+                    result = await _controller.receiveDocument(
+                        widget.document.documentNumber,
+                        actionId,
+                        _remarksController.text,
+                        0,
+                        '');
+                  } finally {
+                    // Dismiss the loading dialog
+                    if (Get.isDialogOpen ?? false) {
+                      Get.back();
+                    }
+                  }
+                  Get.snackbar(
+                    result ? 'Success' : 'Error',
+                    _controller.updateMessage,
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+
+                  if (result) {
+                    _refreshDocumentDetails();
+                  }
+                }
               },
               child: const Text('Confirm'),
             ),
@@ -262,21 +440,30 @@ class _DocumentDetailsState extends State<DocumentDetails> {
         floatingActionButton: Obx(() {
           return _controller.isLoading.value
               ? const SizedBox()
-              : SpeedDial(
-                  icon: Icons.apps,
-                  activeIcon: Icons.close,
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  children: _controller.actions.map<SpeedDialChild>((action) {
-                    return SpeedDialChild(
-                      child: Icon(_getActionIcon(action.action_id)),
-                      foregroundColor: Colors.white,
-                      backgroundColor: _getActionColor(action.action_id),
-                      label: action.label.toUpperCase(),
-                      onTap: () =>
-                          _showActionModal(action.action_id, action.label),
-                    );
-                  }).toList(),
+              : Visibility(
+                  visible: _controller.actions.isNotEmpty,
+                  child: SpeedDial(
+                    icon: Icons.apps,
+                    activeIcon: Icons.close,
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    children: _controller.actions.map<SpeedDialChild>((action) {
+                      return SpeedDialChild(
+                        child: Icon(_getActionIcon(action.action_id)),
+                        foregroundColor: Colors.white,
+                        backgroundColor: _getActionColor(action.action_id),
+                        label: action.label.toUpperCase(),
+                        onTap: () => action.action_id == 3
+                            ? _showActionReceiveModal(
+                                action.action_id, action.label)
+                            : action.action_id == 2
+                                ? _showActionReleaseModal(
+                                    action.action_id, action.label)
+                                : _showActionOtherActionModal(
+                                    action.action_id, action.label),
+                      );
+                    }).toList(),
+                  ),
                 );
         }),
         body: Stack(
@@ -316,6 +503,19 @@ class _DocumentDetailsState extends State<DocumentDetails> {
                           TextEditingController(text: _document.documentType),
                       readOnly: true,
                       hintText: 'Document Type',
+                    ),
+                    const SizedBox(height: 16),
+                    Visibility(
+                      visible: !(_document.purpose == null),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Purpose: ${_document.purpose}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(

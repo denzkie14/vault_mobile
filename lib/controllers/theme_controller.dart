@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class ThemeController extends GetxController {
   // Observable for current theme mode
@@ -20,9 +21,26 @@ class ThemeController extends GetxController {
     scaffoldBackgroundColor: Colors.black,
   );
 
-  // Method to toggle theme
+  final GetStorage _storage = GetStorage();
+  final String _themeKey = 'isDarkMode';
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Load the saved theme mode on initialization
+    isDarkMode.value = _storage.read(_themeKey) ?? false;
+    Get.changeTheme(isDarkMode.value ? darkTheme : lightTheme);
+  }
+
+  // Method to toggle theme and save it
   void toggleTheme() {
     isDarkMode.value = !isDarkMode.value;
     Get.changeTheme(isDarkMode.value ? darkTheme : lightTheme);
+    _saveThemeMode();
+  }
+
+  // Save the theme mode in GetStorage
+  void _saveThemeMode() {
+    _storage.write(_themeKey, isDarkMode.value);
   }
 }

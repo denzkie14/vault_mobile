@@ -80,6 +80,16 @@ class _PdfViewPageState extends State<PdfViewPage> {
           message,
           snackPosition: SnackPosition.BOTTOM,
         );
+      } else if (response.statusCode == 404) {
+        setState(() {
+          _isLoading = false;
+          message = 'File not found.';
+        });
+        Get.snackbar(
+          'Error',
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+        );
       } else {
         setState(() {
           _isLoading = false;

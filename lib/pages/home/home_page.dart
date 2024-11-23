@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:syncfusion_flutter_barcodes/barcodes.dart';
+import '../../controllers/document_controller.dart';
 import 'dashboard_page.dart';
 import 'qr_scanner_page.dart';
 import 'settings_page.dart';

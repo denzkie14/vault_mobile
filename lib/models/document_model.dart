@@ -94,6 +94,8 @@ class DocumentModel {
   final String locationName;
   final String action;
   final String actionDisplay;
+  final int? purposeId;
+  final String? purpose;
   final int documentTypeId;
   final int? securityId;
   final String? securityDescription;
@@ -114,6 +116,8 @@ class DocumentModel {
     required this.locationName,
     required this.action,
     required this.actionDisplay,
+    this.purposeId,
+    this.purpose,
     required this.documentTypeId,
     this.securityId,
     this.securityDescription,
@@ -137,6 +141,8 @@ class DocumentModel {
       locationName: json['location_name'],
       action: json['action'],
       actionDisplay: json['action_display'],
+      purpose: json['purpose_description'],
+      purposeId: json['purpose_id'],
       documentTypeId: json['document_type_id'],
       securityId: json['security_id'],
       securityDescription: json['security_description'],
@@ -161,6 +167,8 @@ class DocumentModel {
       'location_name': locationName,
       'action': action,
       'action_display': actionDisplay,
+      'purpose_description': purpose,
+      'purpose_id': purposeId,
       'document_type_id': documentTypeId,
       'security_id': securityId,
       'security_description': securityDescription,
@@ -168,7 +176,7 @@ class DocumentModel {
       'document_type': documentType,
       'date_created': dateCreated?.toIso8601String(),
       'created_by': createdBy,
-      'last_updated': lastUpdated?.toIso8601String(),
+      'last_updated': lastUpdated.toIso8601String(),
       'is_deleted': isDeleted,
     };
   }

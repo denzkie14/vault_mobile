@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
@@ -16,11 +17,14 @@ class DocumentController extends GetxController {
   // Function to call the API with the scanned value
   final GetStorage storage = GetStorage(); // Instance of GetStorage
 
+  final formKey = GlobalKey<FormState>();
   var isLoading = false.obs;
   var copyOnly = false.obs;
   // var selectedPurpose = ''.obs;
   Rxn<Purpose?> selectedPurpose = Rxn<Purpose?>();
-  User? user;
+  String remarks = '';
+
+  var scannedOTP = ''.obs;
   String message = '';
   int statusCode = 200;
   var actions = <ActionModel>[].obs;
@@ -33,7 +37,7 @@ class DocumentController extends GetxController {
       Uri.parse('$apiUrl/documents/$scannedValue'),
       headers: {'Authorization': 'Bearer  ${user!.token}'},
     );
-
+    debugPrint('$apiUrl/documents/$scannedValue');
     actions.clear();
     isLoading(false);
     if (response.statusCode == 200) {
@@ -97,5 +101,94 @@ class DocumentController extends GetxController {
       );
     }
     return []; // Return an empty list in case of an error
+  }
+
+  var otpCode = ''.obs;
+  var otpMessage = '';
+  var isOTPLoading = false.obs;
+  // Function to fetch code from API
+  Future<bool> fetchCodeFromAPI() async {
+    otpCode.value = '';
+    otpMessage = '';
+    User user = User.fromJson(storage.read('user'));
+    isOTPLoading(true);
+    final url = Uri.parse('$apiUrl/otp'); // Replace with your API URL
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer  ${user.token}'},
+    );
+    isOTPLoading(false);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      otpCode.value =
+          data['otp']['otp_code']; // Adjust based on API response structure
+      return true;
+    } else {
+      otpMessage = 'Failed to fetch code, please try again.';
+      //throw Exception('Failed to fetch code');
+      return false;
+    }
+  }
+
+  String updateMessage = '';
+  var isUpdating = false.obs;
+  var isUpdatingDocumentLoading = false.obs;
+  // Function to fetch code from API
+  Future<bool> releaseDocument(
+      String documentCode, int actionId, String remarks) async {
+    User user = User.fromJson(storage.read('user'));
+    isUpdating(true);
+    final url = Uri.parse(
+        '$apiUrl/documents/log?id=$documentCode&action_id=$actionId&purpose_id=${selectedPurpose.value?.id}&remarks=$remarks&copy_only=${copyOnly.value}&otp=${scannedOTP.value}'); // Replace with your API URL
+
+    debugPrint(url.path);
+    final response = await http.post(
+      url,
+      headers: {'Authorization': 'Bearer  ${user.token}'},
+    );
+    isUpdating(false);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      updateMessage = data['message']; // Adjust based on API response structure
+      return true;
+    }
+    if (response.statusCode == 401) {
+      updateMessage =
+          'Unauthorized access!'; // Adjust based on API response structure
+      return false;
+    } else {
+      updateMessage = json.decode(response.body);
+      //throw Exception('Failed to fetch code');
+      return false;
+    }
+  }
+
+  Future<bool> receiveDocument(String documentCode, int actionId,
+      String remarks, int purpose_id, String delivery_otp) async {
+    User user = User.fromJson(storage.read('user'));
+    isUpdating(true);
+    final url = Uri.parse(
+        '$apiUrl/documents/log?id=$documentCode&action_id=$actionId&purpose_id=$purpose_id&remarks=$remarks&copy_only=${copyOnly.value}&otp=$delivery_otp'); // Replace with your API URL
+
+    debugPrint(url.path);
+    final response = await http.post(
+      url,
+      headers: {'Authorization': 'Bearer  ${user.token}'},
+    );
+    isUpdating(false);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      updateMessage = data['message']; // Adjust based on API response structure
+      return true;
+    }
+    if (response.statusCode == 401) {
+      updateMessage =
+          'Unauthorized access!'; // Adjust based on API response structure
+      return false;
+    } else {
+      updateMessage = json.decode(response.body);
+      //throw Exception('Failed to fetch code');
+      return false;
+    }
   }
 }

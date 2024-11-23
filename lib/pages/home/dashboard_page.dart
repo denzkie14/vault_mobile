@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 import 'package:vault_mobile/models/document_model.dart';
 
+import '../../controllers/document_controller.dart';
 import '../../widgets/document_tile.dart';
 
 class DashboardPage extends StatelessWidget {
   final List<DocumentModel> documents = [];
-
+  final _controller = Get.put(DocumentController());
   // Sample data for the cards and recent transactions
   final Map<String, Map<String, dynamic>> cardData = {
     'Incoming': {
@@ -71,7 +74,14 @@ class DashboardPage extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dashboard'),
+        title: const Text('Dashboard'),
+        actions: [
+          IconButton(
+              onPressed: () {
+                _showQRCodeBottomSheet(context);
+              },
+              icon: Icon(Icons.qr_code))
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.only(right: 8, left: 8, top: 8, bottom: 0),
@@ -172,6 +182,92 @@ class DashboardPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Function to show BottomSheet with Syncfusion QR code
+  void _showQRCodeBottomSheet(BuildContext context) async {
+    try {
+      _controller.fetchCodeFromAPI();
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Obx(() {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _controller.isOTPLoading.value
+                      ? SizedBox(
+                          height: MediaQuery.of(context).size.height / 3,
+                          width: MediaQuery.of(context).size.height / 3,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : SizedBox(
+                          height: MediaQuery.of(context).size.height / 3,
+                          width: MediaQuery.of(context).size.height / 3,
+                          child: SfBarcodeGenerator(
+                            value: _controller.otpCode.value,
+                            symbology: QRCode(),
+                            showValue:
+                                false, // Hides the code text below the QR code
+                            //size: const Size(200, 200),
+                          ),
+                        ),
+                  const SizedBox(height: 16),
+                  _controller.isOTPLoading.value
+                      ? const Text(
+                          'Generating OTP, please wait...',
+                        )
+                      : Column(
+                          children: [
+                            Text(
+                              _controller.otpCode.value,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text(
+                              'This OTP is valid for 3 minutes only',
+                              style: TextStyle(
+                                fontSize: 14,
+                                //  fontWeight: FontWeight.it,
+                              ),
+                            ),
+                          ],
+                        ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _controller.fetchCodeFromAPI(),
+                        child: const Text('Refresh'),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }),
+          );
+        },
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching code: $error')),
+      );
+    }
   }
 }
 

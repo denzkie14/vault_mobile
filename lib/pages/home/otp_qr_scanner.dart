@@ -7,14 +7,15 @@ import 'package:vault_mobile/controllers/theme_controller.dart';
 import 'package:vault_mobile/models/document_model.dart';
 import 'package:vault_mobile/pages/home/document_page.dart';
 
-class QRCodeScannerScreen extends StatefulWidget {
-  const QRCodeScannerScreen({Key? key}) : super(key: key);
+class OTP_QRCodeScannerScreen extends StatefulWidget {
+  const OTP_QRCodeScannerScreen({Key? key}) : super(key: key);
 
   @override
-  _QRCodeScannerScreenState createState() => _QRCodeScannerScreenState();
+  _OTP_QRCodeScannerScreenState createState() =>
+      _OTP_QRCodeScannerScreenState();
 }
 
-class _QRCodeScannerScreenState extends State<QRCodeScannerScreen> {
+class _OTP_QRCodeScannerScreenState extends State<OTP_QRCodeScannerScreen> {
   final DocumentController qrController = Get.put(DocumentController());
   final ThemeController themeController = Get.put(ThemeController());
   final MobileScannerController cameraController =
@@ -26,7 +27,7 @@ class _QRCodeScannerScreenState extends State<QRCodeScannerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Code Scanner'),
+        title: const Text('OTP QR Code Scanner'),
         actions: [
           IconButton(
             icon: const Icon(Icons.cameraswitch),
@@ -76,7 +77,7 @@ class _QRCodeScannerScreenState extends State<QRCodeScannerScreen> {
                     Align(
                       alignment: Alignment.center,
                       child: Text(
-                        scannedCode ?? 'Scan a Document Code',
+                        scannedCode ?? 'Scan a OTP Code',
                         style: const TextStyle(fontSize: 18),
                       ),
                     ),
@@ -105,11 +106,12 @@ class _QRCodeScannerScreenState extends State<QRCodeScannerScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Enter Document Code'),
+          title: const Text('Enter OTP Code'),
           content: TextField(
             controller: codeController,
+            maxLength: 6,
             decoration: const InputDecoration(
-              hintText: 'Type the code here',
+              hintText: 'Type OTP Code here',
             ),
           ),
           actions: [
@@ -138,72 +140,6 @@ class _QRCodeScannerScreenState extends State<QRCodeScannerScreen> {
   Future<void> _handleQRCodeScanned(String code) async {
     // Stop scanning temporarily
     cameraController.stop();
-
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Fetch data from API
-      final DocumentModel? document = await qrController
-          .fetchDataFromAPI(code)
-          .timeout(const Duration(seconds: 60), onTimeout: () {
-        throw TimeoutException(
-            'The connection has timed out, please try again later.');
-      });
-
-      // Dismiss loading dialog
-      if (mounted) Get.back();
-
-      if (document != null) {
-        // Dispose the camera before navigation
-        cameraController.dispose(); // Ensure camera resources are released
-
-        // Redirect to DocumentDetails page
-        if (mounted) {
-          Get.to(() => DocumentDetails(document: document));
-        }
-      } else {
-        Get.snackbar(
-          qrController.statusCode == 401 ? 'Unauthorized Access' : 'Error',
-          qrController.message,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-
-        cameraController.start();
-      }
-    } on TimeoutException catch (e) {
-      if (mounted) Get.back();
-      Get.snackbar(
-        'An error occured!',
-        'Request timed out.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      cameraController.start();
-    } catch (e) {
-      debugPrint('Error: $e');
-
-      // Dismiss loading dialog and show error
-      if (mounted) Get.back();
-      Get.snackbar(
-        'An error occured!',
-        'Failed to fetch document: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      cameraController.start();
-    } finally {
-      if (Get.isDialogOpen == true) {
-        Get.back(); // Close the dialog
-      }
-      // Re-enable scanning after navigation (start camera if user navigates back)
-      setState(() {
-        isProcessing = false;
-        scannedCode = 'Scan a Document Code';
-      });
-    }
+    Get.back<String>(result: code);
   }
 }

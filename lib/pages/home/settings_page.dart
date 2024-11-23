@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../controllers/theme_controller.dart';
 import '../../controllers/notification_controller.dart' as notify;
 import '../../widgets/confirm_dialog.dart';
