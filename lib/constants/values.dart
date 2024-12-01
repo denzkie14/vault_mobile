@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 final GlobalKey<ScaffoldState> scaffoldKeyDrawer = GlobalKey();
 // const rootURL = "https://southcotabato.ph/";
 // const apiUrl = "http://188.180.100.35/VAULT/api/";
-//const apiUrl = "http://192.168.2.244/VAULT/api/";
-const apiUrl = "http://138.3.210.160//VAULT/api/";
+const apiUrl = "http://192.168.2.243/VAULT/api/";
+// const apiUrl = "http://138.3.210.160//VAULT/api/";
 
 // const rootURL = "http://188.180.66.231/";
 //const apiUrl = "http://188.180.100.35:8080/api/";
