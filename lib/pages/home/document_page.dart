@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
@@ -7,13 +8,9 @@ import 'package:vault_mobile/models/document_model.dart';
 import 'package:vault_mobile/pages/home/otp_qr_scanner.dart';
 import 'package:vault_mobile/pages/home/pdf_view.dart';
 import 'package:vault_mobile/widgets/custom_infputfield.dart';
-
-import '../../constants/values.dart';
 import '../../controllers/document_controller.dart';
 import '../../models/document_log_model.dart';
-import '../../models/purpose_model.dart';
 import '../../widgets/circular_button.dart';
-import '../../widgets/confirm_dialog.dart';
 import '../../widgets/purpose_dropdown.dart';
 
 class DocumentDetails extends StatefulWidget {

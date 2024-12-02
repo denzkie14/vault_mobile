@@ -74,6 +74,40 @@ class LoginController extends GetxController {
     }
   }
 
+  Future<void> updateToken(String token) async {
+    debugPrint('updateToken : updating token: $token');
+    try {
+      User user = User.fromJson(storage.read('user'));
+      final response = await http.put(
+        Uri.parse('$apiUrl/fcm/update?token=$token'),
+        headers: {'Authorization': 'Bearer  ${user.token}'},
+
+        //body: json.encode(data),
+      );
+
+      if (response.statusCode == 200) {
+        var responseData = json.decode(response.body);
+        debugPrint(responseData.toString());
+
+        if (responseData['success'] == true) {
+          debugPrint('Token has been updated!');
+        } else {
+          debugPrint('Error has occured: ${json.decode(response.body)}');
+        }
+      } else if (response.statusCode == 401) {
+        debugPrint('Error has occured: ${json.decode(response.body)}');
+      } else if (response.statusCode == 404) {
+        debugPrint('Error has occured: ${json.decode(response.body)}');
+      } else {
+        debugPrint('Error has occured: ${json.decode(response.body)}');
+      }
+    } catch (e) {
+      debugPrint('Error occurred: $e');
+    } finally {
+      //  isLoading(false);
+    }
+  }
+
   // Function to save user data to GetStorage
   // void saveUserData(User user) {
   //   storage.write('user', user.toJson());

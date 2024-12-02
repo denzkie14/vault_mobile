@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
@@ -7,6 +8,11 @@ import '../../controllers/dashboard_controller.dart';
 import '../../controllers/document_controller.dart';
 import '../../widgets/document_tile.dart';
 import 'document_page.dart';
+
+Future<void> _messageHandler(RemoteMessage message) async {
+  print('background message ${message.notification!.body}');
+//  OrderController().load();
+}
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -35,6 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    FirebaseMessaging.onBackgroundMessage(_messageHandler);
     _controller.fetchDashboardData();
   }
 

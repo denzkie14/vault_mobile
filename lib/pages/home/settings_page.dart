@@ -32,29 +32,29 @@ class SettingsPage extends StatelessWidget {
               );
             }),
           ),
-          // Divider(),
+          const Divider(),
 
-          // // Notifications Switch with padding, separator, and icon
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: 8.0),
-          //   child: Obx(() {
-          //     return SwitchListTile(
-          //       title: Text('Notifications'),
-          //       value: notificationController.isNotificationsEnabled.value,
-          //       onChanged: (value) async {
-          //         await notificationController.toggleNotifications(value);
+          // Notifications Switch with padding, separator, and icon
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Obx(() {
+              return SwitchListTile(
+                title: Text('Notifications'),
+                value: notificationController.isNotificationsEnabled.value,
+                onChanged: (value) async {
+                  await notificationController.toggleNotifications(value);
 
-          //         if (value) {
-          //           notificationController.showLocalNotification(
-          //             title: 'Notifications Enabled',
-          //             body: 'You will now receive notifications.',
-          //           );
-          //         }
-          //       },
-          //       secondary: Icon(Icons.notifications),
-          //     );
-          //   }),
-          // ),
+                  if (value) {
+                    notificationController.showLocalNotification(
+                      title: 'Notifications Enabled',
+                      body: 'You will now receive notifications.',
+                    );
+                  }
+                },
+                secondary: Icon(Icons.notifications),
+              );
+            }),
+          ),
           // Divider(),
 
           // // Test Notification Button

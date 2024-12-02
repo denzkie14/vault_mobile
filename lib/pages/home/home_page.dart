@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
+import 'package:vault_mobile/controllers/login_controller.dart';
+import '../../controllers/dashboard_controller.dart';
 import '../../controllers/document_controller.dart';
 import 'dashboard_page.dart';
 import 'qr_scanner_page.dart';
 import 'settings_page.dart';
+import '../../controllers/notification_controller.dart' as notify;
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,7 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-
+  final _controller = Get.put(DashboardController());
   int _selectedIndex = 0;
   DateTime? currentBackPressTime;
 
@@ -26,6 +30,12 @@ class _HomePageState extends State<HomePage> {
     //  DashboardPage(),
     SettingsPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    configureFCM();
+  }
 
   void _onItemTapped(int index) {
     debugPrint('Selected index = $index');
@@ -51,6 +61,33 @@ class _HomePageState extends State<HomePage> {
     } else {
       return Future.value(true); // Exit the app
     }
+  }
+
+  void configureFCM() {
+    final notify.NotificationController notificationController =
+        Get.put(notify.NotificationController());
+
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    // Get FCM token
+    messaging.getToken().then((token) {
+      print("FCM Token: $token");
+      if (token != null) {
+        LoginController().updateToken(token);
+      }
+    });
+
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Message received: ${message.notification?.title}");
+
+      notificationController.showLocalNotification(
+        title: message.notification?.title ?? 'Vault Notification',
+        body: message.notification?.body ?? 'Vault Notification',
+      );
+
+      _controller.fetchDashboardData();
+    });
   }
 
   @override

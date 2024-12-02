@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import SystemChrome
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -15,14 +17,28 @@ import 'pages/login/login.dart';
 import 'services/notification_service.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await GetStorage.init(); // Initialize GetStorage
+
+  await Firebase.initializeApp();
 
   // Restrict app orientation to portrait only
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp, // Portrait mode (default orientation)
   ]);
 
+  //configureFCM();
   runApp(VaultApp());
+}
+
+void requestNotificationPermissions() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
 }
 
 class VaultApp extends StatelessWidget {
