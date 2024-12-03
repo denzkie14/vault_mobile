@@ -70,27 +70,38 @@ class DocumentTile extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ChoiceChip(
-                      label: Text(
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
                         document.actionDisplay,
-                        style: const TextStyle(
-                          color: Colors.white, // Dynamic text color
+                        style: TextStyle(
+                          color: document.action.toLowerCase() == 'receive'
+                              ? Colors.blue
+                              : document.action.toLowerCase() == 'release'
+                                  ? Colors.yellow
+                                  : document.action.toLowerCase() == 'approve'
+                                      ? Colors.green
+                                      : document.action.toLowerCase() ==
+                                              'disapprove'
+                                          ? Colors.red
+                                          : Colors.black, // Dynamic text color
                         ),
                       ),
-                      labelStyle: const TextStyle(color: Colors.white),
-                      selected: true,
-                      selectedColor: document.action.toLowerCase() == 'receive'
-                          ? Colors.blue
-                          : document.action.toLowerCase() == 'release'
-                              ? Colors.yellow
-                              : document.action.toLowerCase() == 'approve'
-                                  ? Colors.green
-                                  : document.action.toLowerCase() ==
-                                          'disapprove'
-                                      ? Colors.red
-                                      : Colors
-                                          .black, // Background color when selected
                     ),
+                    // labelStyle: const TextStyle(color: Colors.white),
+                    //  selected: true,
+                    //   selectedColor: document.action.toLowerCase() == 'receive'
+                    //       ? Colors.blue
+                    //       : document.action.toLowerCase() == 'release'
+                    //           ? Colors.yellow
+                    //           : document.action.toLowerCase() == 'approve'
+                    //               ? Colors.green
+                    //               : document.action.toLowerCase() ==
+                    //                       'disapprove'
+                    //                   ? Colors.red
+                    //                   : Colors
+                    //                       .black, // Background color when selected
+                    // ),
                     Text(formattedDate),
                     Text(formattedTime)
                   ],

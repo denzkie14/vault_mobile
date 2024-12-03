@@ -4,6 +4,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:vault_mobile/constants/color_values.dart';
+import 'package:vault_mobile/controllers/theme_controller.dart';
 import 'package:vault_mobile/models/document_model.dart';
 import 'package:vault_mobile/pages/home/otp_qr_scanner.dart';
 import 'package:vault_mobile/pages/home/pdf_view.dart';
@@ -24,6 +25,7 @@ class DocumentDetails extends StatefulWidget {
 
 class _DocumentDetailsState extends State<DocumentDetails> {
   late DocumentModel _document;
+  final _themecController = Get.put(ThemeController());
   final DocumentController _controller = Get.put(DocumentController());
   final TextEditingController _remarksController = TextEditingController();
   bool _isCopyOnly = false;
@@ -32,6 +34,7 @@ class _DocumentDetailsState extends State<DocumentDetails> {
   void initState() {
     super.initState();
     _document = widget.document;
+    _controller.fetchDataFromAPI(_document.documentNumber);
   }
 
   Future<void> _refreshDocumentDetails() async {
@@ -124,6 +127,7 @@ class _DocumentDetailsState extends State<DocumentDetails> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
+                              maxLines: 4,
                               'Details:',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -419,8 +423,12 @@ class _DocumentDetailsState extends State<DocumentDetails> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: Colors.blue,
+        backgroundColor:
+            _themecController.isDarkMode.value ? Colors.blueGrey : Colors.blue,
         appBar: AppBar(
+          backgroundColor: _themecController.isDarkMode.value
+              ? Colors.blueGrey
+              : Colors.blue,
           elevation: 0,
           centerTitle: true,
           title: Text(
@@ -442,8 +450,11 @@ class _DocumentDetailsState extends State<DocumentDetails> {
                   child: SpeedDial(
                     icon: Icons.apps,
                     activeIcon: Icons.close,
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                    backgroundColor:
+                        _themecController.isDarkMode.value ? null : Colors.blue,
+                    foregroundColor: _themecController.isDarkMode.value
+                        ? null
+                        : Colors.white,
                     children: _controller.actions.map<SpeedDialChild>((action) {
                       return SpeedDialChild(
                         child: Icon(_getActionIcon(action.action_id)),
@@ -467,100 +478,119 @@ class _DocumentDetailsState extends State<DocumentDetails> {
           children: [
             Align(
               alignment: Alignment.bottomCenter,
-              child: Container(
-                width: size.width,
-                height: size.height - 110,
-                padding: const EdgeInsets.only(right: 12, left: 12, top: 36),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    topRight: Radius.circular(25),
+              child: Obx(() {
+                return Container(
+                  width: size.width,
+                  height: size.height - 110,
+                  padding: const EdgeInsets.only(right: 12, left: 12, top: 36),
+                  decoration: BoxDecoration(
+                    color: _themecController.isDarkMode.value
+                        ? Colors.black
+                        : Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      topRight: Radius.circular(25),
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    CustomTextFormField(
-                      textController:
-                          TextEditingController(text: _document.title),
-                      readOnly: true,
-                      hintText: 'Title',
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextFormField(
-                      textController:
-                          TextEditingController(text: _document.description),
-                      hintText: 'Description',
-                      readOnly: true,
-                      maxLines: 4,
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextFormField(
-                      textController:
-                          TextEditingController(text: _document.documentType),
-                      readOnly: true,
-                      hintText: 'Document Type',
-                    ),
-                    const SizedBox(height: 16),
-                    Visibility(
-                      visible: !(_document.purpose == null),
-                      child: Row(
+                  child: Column(
+                    children: [
+                      CustomTextFormField(
+                        textController:
+                            TextEditingController(text: _document.title),
+                        readOnly: true,
+                        hintText: 'Title',
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextFormField(
+                        textController:
+                            TextEditingController(text: _document.description),
+                        hintText: 'Description',
+                        readOnly: true,
+                        maxLines: 4,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextFormField(
+                        textController:
+                            TextEditingController(text: _document.documentType),
+                        readOnly: true,
+                        hintText: 'Document Type',
+                      ),
+                      const SizedBox(height: 16),
+                      Visibility(
+                        visible: !(_document.purpose == null),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Purpose: ${_document.purpose}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
-                            'Purpose: ${_document.purpose}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          Flexible(
+                            child: Text(
+                              'Origin: ${_document.originName}',
+                              maxLines: 4,
+                              softWrap: true,
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Origin: ${_document.originName}'),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Location: ${_document.locationName}'),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Created By: ${_document.createdBy}'),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Security: ${_document.securityDescription}'),
-                        SizedBox(
-                          width: 16,
-                        ),
-                        _document.securityId == 1
-                            ? const Icon(Icons.public)
-                            : _document.securityId == 2
-                                ? const Icon(Icons.safety_check)
-                                : const Icon(Icons.lock),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                            'Status: ${_document.actionDisplay} @ ${formattedDate}'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Flexible(
+                              child:
+                                  Text('Location: ${_document.locationName}')),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Flexible(
+                              child:
+                                  Text('Created By: ${_document.createdBy}')),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text('Security: ${_document.securityDescription}'),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          _document.securityId == 1
+                              ? const Icon(Icons.public)
+                              : _document.securityId == 2
+                                  ? const Icon(Icons.safety_check)
+                                  : const Icon(Icons.lock),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Flexible(
+                            child: Text(
+                                'Status: ${_document.actionDisplay} @ ${formattedDate}'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ),
             Align(
               alignment: Alignment.topCenter,

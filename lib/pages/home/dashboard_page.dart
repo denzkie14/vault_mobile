@@ -71,7 +71,7 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             // Responsive cards using GridView
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Obx(() {
                 return _controller.isLoading.value
                     ? const Center(
@@ -119,8 +119,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
             // Recent Transactions Table
             Expanded(
-              flex: 3,
+              flex: 5,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const Align(
                     alignment: Alignment.topLeft,

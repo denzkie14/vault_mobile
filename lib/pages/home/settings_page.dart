@@ -4,22 +4,31 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../controllers/theme_controller.dart';
 import '../../controllers/notification_controller.dart' as notify;
+import '../../models/user_model.dart';
 import '../../widgets/confirm_dialog.dart';
 
 class SettingsPage extends StatelessWidget {
   final ThemeController themeController = Get.find<ThemeController>();
   final notify.NotificationController notificationController =
       Get.put(notify.NotificationController());
-
+  final GetStorage storage = GetStorage();
   SettingsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    User user = User.fromJson(storage.read('user'));
     return Scaffold(
       appBar: AppBar(title: Text('Settings')),
       body: ListView(
         padding: EdgeInsets.all(16.0),
         children: [
+          UserAccountsDrawerHeader(
+              currentAccountPicture: Image.asset('assets/images/user.png'),
+              accountName: Text(
+                '${user.firstName} ${user.lastName}'.toUpperCase(),
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              accountEmail: Text(user.officeDescription)),
           // Dark Mode Switch with padding, separator, and icon
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
