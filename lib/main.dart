@@ -11,6 +11,7 @@ import 'controllers/theme_controller.dart';
 import 'pages/home/dashboard_page.dart';
 import 'pages/home/document_page.dart';
 import 'pages/home/home_page.dart';
+import 'pages/home/notification_page.dart';
 import 'pages/home/qr_scanner_page.dart';
 import 'pages/home/settings_page.dart';
 import 'pages/login/login.dart';
@@ -63,6 +64,7 @@ class VaultApp extends StatelessWidget {
           GetPage(name: '/login', page: () => LoginView()),
           GetPage(name: '/home', page: () => HomePage()),
           GetPage(name: '/dashboard', page: () => DashboardPage()),
+          GetPage(name: '/notification', page: () => NotificationPage()),
           GetPage(name: '/scan', page: () => QRCodeScannerScreen()),
           GetPage(name: '/settings', page: () => SettingsPage()),
         ],

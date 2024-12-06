@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 import 'package:vault_mobile/controllers/login_controller.dart';
 import '../../controllers/dashboard_controller.dart';
 import '../../controllers/document_controller.dart';
+import '../../models/user_model.dart';
 import 'dashboard_page.dart';
 import 'qr_scanner_page.dart';
 import 'settings_page.dart';
@@ -63,13 +65,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void configureFCM() {
+  final GetStorage storage = GetStorage(); // Instance of GetStorage
+  void configureFCM() async {
     final notify.NotificationController notificationController =
         Get.put(notify.NotificationController());
 
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-
+    User user = User.fromJson(storage.read('user'));
     // Get FCM token
+    await FirebaseMessaging.instance.subscribeToTopic(user.officeCode);
     messaging.getToken().then((token) {
       print("FCM Token: $token");
       if (token != null) {
@@ -87,6 +91,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       _controller.fetchDashboardData();
+      notificationController.fetchNotifications();
     });
   }
 

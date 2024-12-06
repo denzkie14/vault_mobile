@@ -67,10 +67,16 @@
 //   }
 // }
 
+import 'dart:convert';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:vault_mobile/models/notification_model.dart';
+import 'package:http/http.dart' as http;
+import '../constants/values.dart';
+import '../models/user_model.dart';
 
 class NotificationController extends GetxController {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -79,7 +85,8 @@ class NotificationController extends GetxController {
   var isNotificationsEnabled = false.obs;
   final GetStorage _storage = GetStorage();
   final String _notificationKey = 'isNotificationsEnabled';
-
+  var notifications = <NotificationModel>[].obs;
+  var isLoading = false.obs;
   NotificationController() {
     _initializeNotifications();
     _loadNotificationSettings();
@@ -147,6 +154,69 @@ class NotificationController extends GetxController {
       );
     } catch (e) {
       print('Error showing notification: $e');
+    }
+  }
+
+  final GetStorage storage = GetStorage(); // Instance of GetStorage
+  // Fetch Document Logs by Document Number
+  fetchNotifications() async {
+    try {
+      isLoading(true);
+      User user = User.fromJson(storage.read('user'));
+
+      final response = await http.get(
+        Uri.parse('$apiUrl/notifications/'),
+        headers: {'Authorization': 'Bearer  ${user.token}'},
+      );
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        List<NotificationModel> logs = (data['notifications'] as List)
+            .map((log) => NotificationModel.fromJson(log))
+            .toList();
+        notifications.clear();
+        notifications.addAll(logs);
+        notifications.refresh();
+      } else {
+        print(jsonDecode(
+            'fetchNotifications Error: code: ${response.statusCode}'));
+        print(jsonDecode(response.body));
+      }
+    } catch (e) {
+      print(jsonDecode('fetchNotifications Error: ${e}'));
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  String message = "";
+  Future<bool> deleteNotification(String id) async {
+    try {
+      isLoading(true);
+      User user = User.fromJson(storage.read('user'));
+
+      final response = await http.delete(
+        Uri.parse('$apiUrl/notification?id=$id'),
+        headers: {'Authorization': 'Bearer  ${user.token}'},
+      );
+
+      if (response.statusCode == 200) {
+        fetchNotifications();
+        message = "Notification deleted successfully.";
+        return true;
+      } else {
+        // print(jsonDecode(
+        //     'fetchNotifications Error: code: ${response.statusCode}'));
+        // print(jsonDecode(response.body));
+        message = "Error Occured, please try again.";
+        return false;
+      }
+    } catch (e) {
+      message = "Error Occured, please try again.";
+      // print(jsonDecode('fetchNotifications Error: ${e}'));
+      return false;
+    } finally {
+      isLoading(false);
     }
   }
 }

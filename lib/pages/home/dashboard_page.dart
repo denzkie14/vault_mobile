@@ -6,6 +6,7 @@ import 'package:vault_mobile/models/document_model.dart';
 
 import '../../controllers/dashboard_controller.dart';
 import '../../controllers/document_controller.dart';
+import '../../controllers/notification_controller.dart';
 import '../../widgets/document_tile.dart';
 import 'document_page.dart';
 
@@ -23,6 +24,7 @@ class _DashboardPageState extends State<DashboardPage> {
   final List<DocumentModel> documents = [];
 
   final _controller = Get.put(DashboardController());
+  final _notificationController = Get.put(NotificationController());
 
   final _documentController = Get.put(DocumentController());
 
@@ -42,6 +44,7 @@ class _DashboardPageState extends State<DashboardPage> {
     // TODO: implement initState
     super.initState();
     FirebaseMessaging.onBackgroundMessage(_messageHandler);
+    _notificationController.fetchNotifications();
     _controller.fetchDashboardData();
   }
 
@@ -57,6 +60,50 @@ class _DashboardPageState extends State<DashboardPage> {
                 _showQRCodeBottomSheet(context);
               },
               icon: const Icon(Icons.qr_code)),
+          IconButton(
+              onPressed: () {
+                Get.toNamed('/notification');
+              },
+              icon: const Icon(Icons.notifications)),
+          // Visibility(
+          //   visible: true,
+          //   child: IconButton(onPressed: () {
+          //     Get.toNamed('/notification');
+          //   }, icon: Obx(() {
+          //     bool hasNotifications =
+          //         _notificationController.notifications.isNotEmpty;
+
+          //     return Stack(
+          //       clipBehavior: Clip.none, // Allow the badge to overflow the icon
+          //       children: [
+          //         const Icon(
+          //           Icons.notifications,
+          //           size: 24,
+          //         ),
+          //         if (hasNotifications) // Display the badge only if there are notifications
+          //           Positioned(
+          //             right: -6,
+          //             top: -6,
+          //             child: Container(
+          //               padding: const EdgeInsets.all(2),
+          //               decoration: const BoxDecoration(
+          //                 color: Colors.red,
+          //                 shape: BoxShape.circle,
+          //               ),
+          //               child: Text(
+          //                 '${_notificationController.notifications.length}', // Number of notifications
+          //                 style: const TextStyle(
+          //                   color: Colors.white,
+          //                   fontSize: 12,
+          //                 ),
+          //               ),
+          //             ),
+          //           ),
+          //       ],
+          //     );
+
+          //   })),
+          // ),
           IconButton(
               onPressed: () {
                 _controller.fetchDashboardData();

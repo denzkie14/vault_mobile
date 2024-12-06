@@ -141,30 +141,6 @@ class LoginView extends StatelessWidget {
                               loginController.errorMessage.value,
                               snackPosition: SnackPosition.BOTTOM);
                         }
-
-                        // Show result dialog
-                        // showDialog(
-                        //   context: context,
-                        //   builder: (context) {
-
-                        //     return ResultDialog(
-                        //       title: loginController.isLoggedIn.value
-                        //           ? 'Login Successful'
-                        //           : 'Login Failed',
-                        //       message: loginController.isLoggedIn.value
-                        //           ? 'Welcome back!'
-                        //           : loginController.errorMessage.value,
-                        //       isSuccess: loginController.isLoggedIn.value,
-                        //       onSuccess: () {
-                        //         // Navigate to the next page after successful login
-                        //         Navigator.pushReplacementNamed(
-                        //           context,
-                        //           '/home',
-                        //         );
-                        //       },
-                        //     );
-                        //   },
-                        // );
                       }
                     },
                     style: ElevatedButton.styleFrom(

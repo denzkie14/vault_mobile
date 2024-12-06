@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -94,6 +95,7 @@ class SettingsPage extends StatelessWidget {
                 if (confirm) {
                   final GetStorage storage =
                       GetStorage(); // Access GetStorage instance
+                  unsubscribeFromTopic(user.officeCode);
                   storage.remove('user'); // Clear user data
                   Get.offAllNamed('/login'); // Navigate to LoginPage
                   print("User logged out and redirected to LoginPage");
@@ -127,5 +129,10 @@ class SettingsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void unsubscribeFromTopic(String topic) async {
+    await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
+    print("Unsubscribed from topic: $topic");
   }
 }
